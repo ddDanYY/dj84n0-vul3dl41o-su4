@@ -33,3 +33,10 @@ https://user-images.githubusercontent.com/132532006/236107558-60418095-1950-43df
 9. Symbols2Column
 
 https://user-images.githubusercontent.com/132532006/236108870-ccfb65db-4f83-4c4b-93b7-c83544740c7e.mp4
+
+10. File2Loacl
+
+https://github.com/ddDanYY/dj84n0-vul3dl41o-su4/assets/132532006/cbd26f32-dba9-4a12-993a-58c57bd7775d
+
+
+
