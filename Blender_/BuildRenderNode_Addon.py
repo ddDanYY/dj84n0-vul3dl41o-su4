@@ -13,6 +13,7 @@ bl_info = {
 import bpy
 
 def Fmat(fomat):
+    import random
     if fomat == "Png":
         png = True
         fomatname = "PNG"
@@ -46,8 +47,14 @@ def Fmat(fomat):
     Excluded_layer = ["Alpha", "Noisy Image", "Denoising Normal" , "Denoising Albedo" , "Denoising Depth"]
     RenLay_node_Zd_exists = False
     RenLay_node_Denoise_exists = False
+    RenLay_node_IndexOB = False
+    RenLay_node_IndexMA = False
 
     for name in enabled_outputs:
+        if name =="IndexOB":
+            RenLay_node_IndexOB = True
+        if name =="IndexMA":
+            RenLay_node_IndexMA = True
         if name == "Depth":
             RenLay_node_Zd_exists = True
         if name == "Denoising Normal":
@@ -65,12 +72,65 @@ def Fmat(fomat):
                 existing_input = FileOput_node.inputs[name]
                 link = links.new(RenLay_node.outputs[name], existing_input)
 
+    if RenLay_node_IndexMA:
+        # 遍歷場景中的所有物件
+        for obj in bpy.context.scene.objects:
+            # 確保物件是可渲染的
+            if obj.type == 'MESH' and obj.visible_get():
+                # 遍歷物件的所有材質
+                for material_slot in obj.material_slots:
+                    material = material_slot.material
+                    # 確保材質存在並具有Pass Index屬性
+                    if material and hasattr(material, 'pass_index'):
+                        # 生成大於0的隨機整數
+                        pass_index = random.randint(1, 9999)
+                        # 將Pass Index設定為隨機整數
+                        material.pass_index = pass_index
+        Normalize_node = tree.nodes.new('CompositorNodeNormalize')
+        Normalize_node.location = (140, -170)
+        links.new(RenLay_node.outputs['IndexMA'], Normalize_node.inputs[0])
+        ColorRamp_node = tree.nodes.new('CompositorNodeValToRGB')
+        ColorRamp_node.location = (360, -230)
+        links.new(Normalize_node.outputs[0], ColorRamp_node.inputs[0])
+        links.new(ColorRamp_node.outputs[0], FileOput_node.inputs['IndexMA'])
+        ColorRamp_node.color_ramp.elements.new(0.25)
+        ColorRamp_node.color_ramp.elements.new(0.5)
+        ColorRamp_node.color_ramp.elements.new(0.75)
+        ColorRamp_node.color_ramp.elements[0].color = (1,0,0,1)
+        ColorRamp_node.color_ramp.elements[1].color = (1,0,1,1)
+        ColorRamp_node.color_ramp.elements[2].color = (0,1,0,1)
+        ColorRamp_node.color_ramp.elements[3].color = (1,1,0,1)
+        ColorRamp_node.color_ramp.elements[4].color = (0,0,1,1) 
 
+    if RenLay_node_IndexOB:
+        # 遍歷場景中的所有物件
+        for obj in bpy.context.scene.objects:
+        # 確保物件是可渲染的
+            if obj.type == 'MESH' and obj.visible_get():
+                # 生成大於0的隨機整數
+                pass_index = random.randint(1, 9999)
+                # 將Pass Index設定為隨機整數
+                obj.pass_index = pass_index
+
+        Normalize_node = tree.nodes.new('CompositorNodeNormalize')
+        Normalize_node.location = (140, -100)
+        links.new(RenLay_node.outputs['IndexOB'], Normalize_node.inputs[0])
+        ColorRamp_node = tree.nodes.new('CompositorNodeValToRGB')
+        ColorRamp_node.location = (360, -120)
+        links.new(Normalize_node.outputs[0], ColorRamp_node.inputs[0])
+        links.new(ColorRamp_node.outputs[0], FileOput_node.inputs['IndexOB'])
+        ColorRamp_node.color_ramp.elements.new(0.25)
+        ColorRamp_node.color_ramp.elements.new(0.5)
+        ColorRamp_node.color_ramp.elements.new(0.75)
+        ColorRamp_node.color_ramp.elements[0].color = (0,1,0,1)
+        ColorRamp_node.color_ramp.elements[1].color = (0,1,1,1)
+        ColorRamp_node.color_ramp.elements[2].color = (1,0,0,1)
+        ColorRamp_node.color_ramp.elements[3].color = (1,1,0,1)
+        ColorRamp_node.color_ramp.elements[4].color = (0,0,1,1) 
     if RenLay_node_Zd_exists:
         Normalize_node = tree.nodes.new('CompositorNodeNormalize')
         Normalize_node.location = (140, 0)
         links.new(RenLay_node.outputs['Depth'], Normalize_node.inputs[0])
-        links.new(Normalize_node.outputs[0], FileOput_node.inputs['Depth'])
 
         ColorRamp_node = tree.nodes.new('CompositorNodeValToRGB')
         ColorRamp_node.location = (360, 110)
@@ -83,8 +143,6 @@ def Fmat(fomat):
         MapRange_node = tree.nodes.new('CompositorNodeMapRange')
         MapRange_node.location = (660, 110)
         links.new(ColorRamp_node.outputs[0], MapRange_node.inputs[0])
-        links.new(MapRange_node.outputs[0], FileOput_node.inputs['Depth'])
-
 
     if RenLay_node_Denoise_exists:
         Denoise_node = tree.nodes.new('CompositorNodeDenoise')
