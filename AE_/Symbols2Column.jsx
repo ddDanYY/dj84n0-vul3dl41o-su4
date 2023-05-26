@@ -1,4 +1,4 @@
-﻿var CurComp = app.project.activeItem;
+var CurComp = app.project.activeItem;
 
 // Check activeItem
 if (CurComp && CurComp instanceof CompItem){  
@@ -128,12 +128,12 @@ for (var i = 1; i <= 5 ; i++){
  ColumnControl.property("Slider").addToMotionGraphicsTemplateAs(CurComp, ColumnControl.name);
  
 
- 
  // Colunm Expression to Position
- ColumninBoard.property("Position").expression = "n = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + ColumnControl.name + "\")(\"Slider\");\n" + 
+ 		ColumninBoard.property("Position").expression = "n = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + ColumnControl.name + "\")(\"Slider\");\n" + 
                                                  "Mid = thisComp.layer(\"Column_3\").transform.position[0];\n" +
+												 "i = " + i + ";\n" +
                                                  "SpaceX = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + SpaceXName + "\")(\"Slider\");\n" +
-                                                 "x = (Mid-SpaceX*2) + Math.abs((SpaceX*(index-5)))\n" +
+                                                 "x = (Mid-SpaceX*2) + Math.abs((SpaceX*(i-1)))\n" +
                                                  "y = value[1] + " + SquareSize + "*n;\n" + 
                                                  "value = [x,y];";
  }
