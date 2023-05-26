@@ -143,6 +143,7 @@ def Fmat(fomat):
         MapRange_node = tree.nodes.new('CompositorNodeMapRange')
         MapRange_node.location = (660, 110)
         links.new(ColorRamp_node.outputs[0], MapRange_node.inputs[0])
+        links.new(MapRange_node.outputs[0], FileOput_node.inputs['Depth'])
 
     if RenLay_node_Denoise_exists:
         Denoise_node = tree.nodes.new('CompositorNodeDenoise')
