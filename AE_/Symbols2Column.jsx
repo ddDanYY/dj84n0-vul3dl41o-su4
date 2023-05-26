@@ -131,7 +131,7 @@ for (var i = 1; i <= 5 ; i++){
  // Colunm Expression to Position
  		ColumninBoard.property("Position").expression = "n = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + ColumnControl.name + "\")(\"Slider\");\n" + 
                                                  "Mid = thisComp.layer(\"Column_3\").transform.position[0];\n" +
-												 "i = " + i + ";\n" +
+						 "i = " + i + ";\n" +
                                                  "SpaceX = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + SpaceXName + "\")(\"Slider\");\n" +
                                                  "x = (Mid-SpaceX*2) + Math.abs((SpaceX*(i-1)))\n" +
                                                  "y = value[1] + " + SquareSize + "*n;\n" + 
