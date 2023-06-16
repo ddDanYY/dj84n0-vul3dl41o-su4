@@ -52,8 +52,8 @@ ParCrl.label = 6;
 ParCrl.selected = false;
 ParCrl.enabled = false;
 
-var SliderName = ["ParSecControl", "YRotaControl", "VeloctiyControl", "SizeControl"];
-var SliderValue = [25, 25, 0, 0]
+var SliderName = ["ParSecControl", "YRotaControl", "VeloctiyControl", "SizeControl", "PositionXControl", "PositionYControl"];
+var SliderValue = [25, 25, 0, 0, 1995, 2038];
 
 for (var i=0; i<SliderName.length; i++) {
        var SlidCrl = ParCrl.Effects.addProperty("ADBE Slider Control");
@@ -69,8 +69,20 @@ var ParticularR = ParRSolid.Effects.addProperty("tc Particular");
 var L = [-75,2038, 1, L];
 var R = [1995,2038, -1, R];
 
-function Partiuclar(ParLR, Par, LR){
-ParLR.property("tc Particular-0581").setValue([Par[0],Par[1],0]); // Position
+function Partiuclar(ParLR, Par){
+    if(Par[2] == 1){
+        ParLR.property("tc Particular-0581").expression =   "oX = thisComp.layer(\"" + ParCrl.name + "\").effect(\""+ SliderName[4] + "\")(\"Slider\");\n" +
+                                                            "oY = thisComp.layer(\"" + ParCrl.name + "\").effect(\""+ SliderName[5] + "\")(\"Slider\");\n" +
+                                                            "x = thisLayer.width - oX;\n" +
+                                                            "y = oY;\n" +
+                                                            "[x, y, 0];"
+    }else if(Par[2] == -1){
+        ParLR.property("tc Particular-0581").expression =   "oX = thisComp.layer(\"" + ParCrl.name + "\").effect(\""+ SliderName[4] + "\")(\"Slider\");\n" +
+                                                            "oY = thisComp.layer(\"" + ParCrl.name + "\").effect(\""+ SliderName[5] + "\")(\"Slider\");\n" +
+                                                            "x = oX;\n" +
+                                                            "y = oY;\n" +
+                                                            "[x, y, 0];"
+    }
 ParLR.property("tc Particular-0146").expression = "thisComp.layer(\"" + ParCrl.name + "\").effect(\""+ SliderName[0] + "\")(\"Slider\");"; // Particles/sec
 ParLR.property("tc Particular-0113").setValue(2); // Direction
 ParLR.property("tc Particular-0112").setValue(90); // XRotation
