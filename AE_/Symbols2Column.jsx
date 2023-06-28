@@ -22,9 +22,12 @@ for (var i = 0; i < filesToImport.length; i++) {
 
 
 // Create "Symbol_" comp
-var SymbolSize = 300;
+var SquareSize_X = 250;
+var SquareSize_Y = 250;
+var SymbolSize_X = Math.ceil(SquareSize_X*1.2);
+var SymbolSize_Y = Math.ceil(SquareSize_Y*1.2);
 var FrameRate = 30;
-var SymbolComp = app.project.items.addComp("Symbol_", SymbolSize, SymbolSize, 1, filesToImport.length / FrameRate, FrameRate);
+var SymbolComp = app.project.items.addComp("Symbol_", SymbolSize_X, SymbolSize_Y, 1, filesToImport.length / FrameRate, FrameRate);
 
 // Import Symbols to "Symbol_" comp
 for (var i = 1; i <= SymbolFolder.numItems; i++) {
@@ -41,8 +44,7 @@ for (var i = 1; i <= SymbolComp.numLayers; i++) {
 }
 
 // Create Square 
-var SquareSize = 250;
-var SquareSolid = SymbolComp.layers.addSolid([1, 0, 0], "Square", SquareSize, SquareSize, 1, SymbolComp.duration);
+var SquareSolid = SymbolComp.layers.addSolid([1, 0, 0], "Square", SquareSize_X, SquareSize_Y, 1, SymbolComp.duration);
 var SquareFill = SquareSolid.Effects.addProperty("ADBE Fill");
 SquareFill.name = "Color";
 
@@ -52,7 +54,7 @@ SquareSolid.moveToEnd();
 
 // Create "Column_" comp 
 var Symbolnum = 20;
-var ColumnComp = app.project.items.addComp("Column_", SymbolSize * 1.5, Symbolnum * SquareSize, 1, 30, FrameRate);
+var ColumnComp = app.project.items.addComp("Column_", Math.ceil(SymbolSize_X * 1.5), Symbolnum * SquareSize_Y, 1, 30, FrameRate);
 
 // Add Null for Seed Control
 var SeedControlContainer = ColumnComp.layers.addNull();
@@ -62,6 +64,7 @@ SeedControl.name = "Seed";
 
 // Add Seed to Essential Graphics 
 SeedControl.property("Slider").addToMotionGraphicsTemplateAs(ColumnComp, SeedControl.name);
+SquareFill.property("Opacity").addToMotionGraphicsTemplateAs(ColumnComp, SquareSolid.name);
 
 // TimeRemap expression
 var TimeRemapExpression = "v = " + (filesToImport.length-1) + "; \n" + 
@@ -79,7 +82,7 @@ var ColorRandomExpression = "seedRandom(index, true);\n" +
 // Duplicate "Symbol_" comp
 for (var i = 0; i < Symbolnum; i++) {
 	var ColumnCompLayer = ColumnComp.layers.add(SymbolComp);
-	ColumnCompLayer.position.setValue([(ColumnComp.width)/2, (i * SquareSize) + (SquareSize / 2)]);
+	ColumnCompLayer.position.setValue([(ColumnComp.width)/2, (i * SquareSize_Y) + (SquareSize_Y / 2)]);
 
 	// TimeRemap Setting
 	ColumnCompLayer.timeRemapEnabled = true;
@@ -97,7 +100,8 @@ ColumnControlContainer.label = 0;
 ColumnControlContainer.moveToEnd();
 ColumnControlContainer.enabled = false;
 
-var SpaceX = 265;
+var SpaceX = 15;
+var OffSetY = 0;
 
 // Add Space Control
 var SpaceXControl = ColumnControlContainer.Effects.addProperty("ADBE Slider Control");
@@ -105,42 +109,61 @@ SpaceXControl.name = "SpaceX";
 var SpaceXName = SpaceXControl.name;
 SpaceXControl.property("Slider").setValue(SpaceX);
 
+var OffSetYControl = ColumnControlContainer.Effects.addProperty("ADBE Slider Control");
+OffSetYControl.name = "OffSetY";
+var OffSetYName = OffSetYControl.name;
+OffSetYControl.property("Slider").setValue(OffSetY);
+
+var SquareControl = ColumnControlContainer.Effects.addProperty("ADBE Checkbox Control");
+    SquareControl.name = "Square";
+var SquareName = SquareControl.name;
+    SquareControl.property("Checkbox").setValue(true);
+
+var TotalSeedControl = ColumnControlContainer.Effects.addProperty("ADBE Slider Control");
+    TotalSeedControl.name = "Seed";
+var TotalSeedControlName = TotalSeedControl.name;
+    TotalSeedControl.property("Slider").setValue(0);
+    TotalSeedControl.property("Slider").addToMotionGraphicsTemplateAs(CurComp, TotalSeedControlName); 
+
 // Duplicate "Column_" comp to Board comp and add Expression on Seed
-for (var i = 1; i <= 5 ; i++){
+for (var i = 5; i >= 1 ; i--){
  var ColumninBoard = CurComp.layers.add(ColumnComp);
  ColumninBoard.label = i;
  ColumninBoard.name = "Column_" + i;
  
  // Motion Tile
+ var MotionTile_Value = 100 + (Math.floor(((30000-ColumnComp.height)/(SquareSize_Y*2)))*10);
  var MotionTile = ColumninBoard.Effects.addProperty("ADBE Tile"); 
- MotionTile.property("Output Height").setValue(600);
+ MotionTile.property("Output Height").setValue(MotionTile_Value);
  
  // Set Position
  ColumninBoard.position.setValue([(CurComp.width/2-SpaceX*2)+(i-1)*SpaceX, CurComp.height /2 - 14500]);
  
- ColumninBoard.property("Essential Properties").property(SeedControl.name).expression = "index;";
- 
+ ColumninBoard.property("Essential Properties").property(SeedControl.name).expression =  "Seed = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + TotalSeedControlName + "\")(\"Slider\");\n" +
+                                                                                                    "Value = Seed + index;";
+ ColumninBoard.property("Essential Properties").property(SquareSolid.name).expression =  "Check = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + SquareName + "\")(\"Checkbox\");\n" +
+ 																						 "Check ==true? value =100: value =0;";                                                                  
 // Add Slider to Column Control Null 
  var ColumnControl = ColumnControlContainer.Effects.addProperty("ADBE Slider Control");
- ColumnControl.name = "Column" + i;
- 
+ 	ColumnControl.name = "Column" + i;
+
  // Add ColumnControl to Essential Graphics 
- ColumnControl.property("Slider").addToMotionGraphicsTemplateAs(CurComp, ColumnControl.name);
+ColumnControl.property("Slider").addToMotionGraphicsTemplateAs(CurComp, ColumnControl.name);
  
 
  // Colunm Expression to Position
  		ColumninBoard.property("Position").expression = "n = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + ColumnControl.name + "\")(\"Slider\");\n" + 
                                                  "Mid = thisComp.layer(\"Column_3\").transform.position[0];\n" +
-						 "i = " + i + ";\n" +
-                                                 "SpaceX = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + SpaceXName + "\")(\"Slider\");\n" +
-                                                 "x = (Mid-SpaceX*2) + Math.abs((SpaceX*(i-1)))\n" +
-                                                 "y = value[1] + " + SquareSize + "*n;\n" + 
+												 "i = " + i + ";\n" +
+                                                 "SpaceX = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + SpaceXName + "\")(\"Slider\")+250;\n" +
+                                                 "OffSetY = thisComp.layer(\"" +  ColumnControlContainer.name + "\").effect(\"" + OffSetYName + "\")(\"Slider\");\n" +
+												 "x = (Mid-SpaceX*2) + Math.abs((SpaceX*(i-1)));\n" +
+                                                 "y = value[1] + OffSetY +" + SquareSize_Y + "*n;\n" + 
                                                  "value = [x,y];";
- }
- 
-CurComp.openInEssentialGraphics();
 
-alert("QQ");
+ColumnControl.moveTo(1);
+}
+
 }
 
 else {
