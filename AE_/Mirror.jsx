@@ -8,10 +8,15 @@ if (app.project.activeItem && app.project.activeItem instanceof CompItem) {
         var layerScale = layer.transform.scale.value;
         var layerRotation = layer.transform.rotation.value;
         var layerPosition = layer.transform.position.value;
-        var newPosition = [comp.width - layerPosition[0], layerPosition[1]];
-
+        var ScaleControl = layer.Effects.addProperty("ADBE Checkbox Control");
+            ScaleControl.name = "Scale";
+        var SacleName = ScaleControl.name;
+        var RotationControl = layer.Effects.addProperty("ADBE Checkbox Control");
+            RotationControl.name = "Rotation";
+        var RotaionName = RotationControl.name;
         var newLayer = layer.duplicate();
             newLayer.name = layer.name + "_Duplicate";
+            layer.name = layer.name +"_Controller";
 
         newLayer.transform.anchorPoint.expression = "value = thisComp.layer(\"" + layer.name + "\").transform.anchorPoint;";
 
@@ -20,13 +25,16 @@ if (app.project.activeItem && app.project.activeItem instanceof CompItem) {
                                                     "y = oP[1];\n" + 
                                                     "value = [x,y];\n";
 
-        newLayer.transform.scale.expression =       "oS = thisComp.layer(\"" + layer.name + "\").transform.scale;\n" +     
-                                                    "x = -(oS[0]);\n" +
+        newLayer.transform.scale.expression =       "oS = thisComp.layer(\"" + layer.name + "\").transform.scale;\n" +  
+                                                    "Check = thisComp.layer(\"" + layer.name + "\").effect(\"" +  SacleName + "\")(\"Checkbox\");\n" +  
+                                                    "Check == true? v =-1:v =1;\n" + 
+                                                    "x = oS[0]*v;\n" +
                                                     "y = oS[1];\n" +                             
                                                     "value = [x,y];\n";
                                                     
         newLayer.transform.rotation.expression =    "oR = thisComp.layer(\"" + layer.name + "\").transform.rotation;\n" +
-                                                    "value = -(oR);\n";
+                                                    "Check = thisComp.layer(\"" + layer.name + "\").effect(\"" + RotaionName + "\")(\"Checkbox\");\n" +
+                                                    "Check == true? Value = -(oR):value;\n";                                      
 
         }  
     }
