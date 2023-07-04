@@ -189,6 +189,38 @@ var R_Calculate_Button = Rolling_ButtonGroup.add("button", undefined, undefined,
 var R_GOGO_Button = Rolling_ButtonGroup.add("button", undefined, undefined, {name: "button2"}); 
     R_GOGO_Button.text = "GOGO"; 
 
+//RandomNum
+var divider3 = Neil.add("panel", undefined, undefined, {name: "divider3"}); 
+    divider3.alignment = "fill"; 
+
+var RandomNumGroup = Neil.add("group", undefined, {name: "RandomNumGroup"}); 
+    RandomNumGroup.orientation = "row"; 
+    RandomNumGroup.alignChildren = ["center","center"]; 
+    RandomNumGroup.spacing = 10; 
+    RandomNumGroup.margins = 0; 
+
+var RandomNumPanel = RandomNumGroup.add("panel", undefined, undefined, {name: "RandomNumPanel"}); 
+    RandomNumPanel.text = "RandomNum"; 
+    RandomNumPanel.orientation = "row"; 
+    RandomNumPanel.alignChildren = ["center","center"]; 
+    RandomNumPanel.spacing = 10; 
+    RandomNumPanel.margins = 10; 
+
+var DigitsPanel = RandomNumPanel.add("panel", undefined, undefined, {name: "DigitsPanel"}); 
+    DigitsPanel.text = "Digits"; 
+    DigitsPanel.orientation = "row"; 
+    DigitsPanel.alignChildren = ["center","top"]; 
+    DigitsPanel.spacing = 10; 
+    DigitsPanel.margins = 10; 
+
+var DigitsText = DigitsPanel.add('edittext {justify: "center", properties: {name: "DigitsEditText"}}'); 
+    DigitsText.text = "13";
+    DigitsText.preferredSize.width = TextWidth; 
+    DigitsText.preferredSize.height = Textheight;
+
+var Ran_GOGO_Button = RandomNumPanel.add("button", undefined, undefined, {name: "Ran_GOGO_Button"}); 
+    Ran_GOGO_Button.text = "GOGO";
+
 //
     DurationText.onChange = UpdateValues;
     SpeedText.onChange = UpdateValues;
@@ -243,6 +275,12 @@ R_Calculate_Button.onClick = function(){
 
 R_GOGO_Button.onClick = function(){
         R_GOGO();
+}
+
+Ran_GOGO_Button.onClick = function(){
+    if(app.project.activeItem){
+        RanNum();
+    }
 }
 
 //Function Rolling
@@ -486,3 +524,43 @@ function C_GOGO(filesToImport,X,Y){
         }
 }
 
+//Function RandomNum
+function RanNum(){
+    var textLayer = app.project.activeItem.layers.addText();
+    var DigitsControl = textLayer.Effects.addProperty("ADBE Slider Control");
+        DigitsControl.name = "Digits";
+    var DigitsName = DigitsControl.name;
+        DigitsControl.property("Slider").setValue(DigitsText.text);
+    var PosterizeControl = textLayer.Effects.addProperty("ADBE Slider Control");
+        PosterizeControl.name = "PosterizeTime";
+    var PosterizeName= PosterizeControl.name;
+        PosterizeControl.property("Slider").setValue(app.project.activeItem.frameRate);
+    var IncrementSpeedControl = textLayer.Effects.addProperty("ADBE Slider Control");
+        IncrementSpeedControl.name = "IncrementSpeed";
+    var IncrementSpeedName = IncrementSpeedControl.name;
+        IncrementSpeedControl.property("Slider").setValue(0);
+    var SeedControl = textLayer.Effects.addProperty("ADBE Slider Control");
+        SeedControl.name = "Seed";
+    var SeedName = SeedControl.name;
+        SeedControl.property("Slider").setValue(0);
+
+    var expression =    "Digits = effect(\""+ DigitsName +"\")(\"Slider\");\n" +
+                        "IncrementSpeed = effect(\""+ IncrementSpeedName +"\")(\"Slider\");\n" +
+                        "Seed = effect(\""+ SeedName +"\")(\"Slider\");\n" +
+                        "posterizeTime(effect(\""+ PosterizeName +"\")(\"Slider\"));\n" + 
+                        "RanNum(Digits,Seed,IncrementSpeed);\n" + 
+                        "value = addCommas(num);\n" + 
+                        "function RanNum(Digits,Seed,IncrementSpeed){\n" + 
+                        "seedRandom((index+1)*Seed,true);\n" + 
+                        "MinRan = Math.pow(10,Digits-1);\n" + 
+                        "MaxRan = (Math.pow(10,Digits)-1) - (MinRan*3);\n" + 
+                        "randomNum = Math.floor(random(MinRan , MaxRan));\n" +
+                        "timeIncrease = time/(1+IncrementSpeed)*random(Math.pow(10,Digits-2),(Math.pow(10,Digits-1)-1));\n" + 
+                        "return num = (randomNum + timeIncrease).toFixed();\n" + 
+                        "}\n" + 
+                        "function addCommas(x) {\n" + 
+                        "return x.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, \",\");\n" + 
+                        "}";
+
+        textLayer.property("Source Text").expression = expression;
+}
